@@ -1,0 +1,42 @@
+# TLS Termination Gateway - example configuration.
+
+[server]
+# Existing plaintext listener is untouched (served by the FastAPI/uvicorn app).
+plaintext_host = "127.0.0.1"
+plaintext_port = 8080
+# New encrypted listener.
+tls_host = "0.0.0.0"
+tls_port = 8443
+# Maximum number of concurrently accepted connections.
+max_connections = 1024
+# Slow-client protection (seconds).
+handshake_timeout = 10.0
+read_timeout = 30.0
+# Graceful stop: drain in-flight requests for this long, then force-close.
+shutdown_timeout = 15.0
+# Bound on the gateway-level resumable-session registry.
+max_sessions = 4096
+
+# Certificate offered when SNI is absent, unknown, or the matched host is
+# currently unhealthy. Required for the TLS listener to start.
+[default_cert]
+cert = "/etc/tls/default.crt"
+key  = "/etc/tls/default.key"
+
+[[vhosts]]
+name = "a.example"
+cert = "/etc/tls/a.crt"
+key  = "/etc/tls/a.key"
+
+[[vhosts]]
+name = "b.example"
+cert = "/etc/tls/b.crt"
+key  = "/etc/tls/b.key"
+
+# A host that requires clients to present a certificate chained to client_ca.
+[[vhosts]]
+name = "secure.example"
+cert = "/etc/tls/secure.crt"
+key  = "/etc/tls/secure.key"
+require_client_cert = true
+client_ca = "/etc/tls/client-ca.crt"
